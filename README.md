@@ -1,4 +1,4 @@
-# Тестовое задание Press Fire Games – Ansible
+# Press Fire Games – Ansible
 
 Автоматическая настройка Ubuntu 24.04 с помощью Ansible.
 
