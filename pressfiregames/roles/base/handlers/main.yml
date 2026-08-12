@@ -1,0 +1,4 @@
+---
+- name: netplan applied
+  debug:
+    msg: "Netplan applied, сеть может переподключиться"

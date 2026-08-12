@@ -1,0 +1,11 @@
+---
+- name: Приводим сервер в порядок
+  hosts: servers
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - base
+    - docker
+    - traefik_nginx
+    - nodejs

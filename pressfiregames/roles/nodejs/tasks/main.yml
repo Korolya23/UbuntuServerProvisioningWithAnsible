@@ -1,0 +1,27 @@
+---
+- name: Ставим curl (нужен для скрипта n)
+  apt:
+    name: curl
+    state: present
+
+- name: Качаем утилиту n (менеджер версий Node.js)
+  get_url:
+    url: https://raw.githubusercontent.com/tj/n/master/bin/n
+    dest: /usr/local/bin/n
+    mode: 0755
+
+- name: Устанавливаем нужные версии Node.js (от root)
+  command: "n {{ item }}"
+  loop: "{{ node_versions }}"
+  args:
+    creates: "/usr/local/n/versions/node/{{ item }}/bin/node"
+  become: yes
+  # Важно: запускаем от root, чтобы записать в /usr/local
+
+- name: Копируем скрипт переключения версии
+  copy:
+    src: switch-node.sh
+    dest: /usr/local/bin/switch-node
+    mode: 0755
+    owner: root
+    group: root

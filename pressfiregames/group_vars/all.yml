@@ -1,0 +1,28 @@
+---
+# Пользователи, которых нужно создать
+users:
+  - name: dev1
+    shell: /bin/bash
+    ssh_key: "ssh-rsa AAA... твой_паблик_ключ"
+  - name: dev2
+    shell: /bin/zsh
+    ssh_key: "ssh-rsa AAA... ещё_ключ"
+
+net_mode: "dhcp"      # или static
+net_iface: "eth0"       # (ip a)
+net_ip: "192.168.1.50/24"
+net_gw: "192.168.1.1"
+net_dns:
+  - 8.8.8.8
+  - 1.1.1.1
+net_routes: []           # доп. маршруты, например: [{ to: "10.0.0.0/8", via: "192.168.1.254" }]
+
+nginx_name: "mynginx"
+http_port: 80
+https_port: 443
+
+# Версии Node.js (LTS), которые установим
+node_versions:
+  - 18.19.0
+  - 20.11.0
+  - 22.11.0

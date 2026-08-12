@@ -1,0 +1,85 @@
+---
+- name: Создаём группу под каждого пользователя
+  group:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ users }}"
+  when: users | default([]) | length > 0
+
+- name: Добавляем пользователей
+  user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    groups: "{{ item.name }}"
+    append: yes
+    state: present
+    create_home: yes
+  loop: "{{ users }}"
+  when: users | default([]) | length > 0
+
+- name: Заливаем SSH-ключи
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    state: present
+    exclusive: no
+  loop: "{{ users }}"
+  when:
+    - users | default([]) | length > 0
+    - item.ssh_key is defined
+    - item.ssh_key != ""
+
+# Настройка сети (Netplan)
+- name: Применяем статический IP
+  block:
+    - name: Генерируем статический netplan
+      copy:
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              {{ net_iface }}:
+                addresses:
+                  - {{ net_ip }}
+                routes:
+                  - to: default
+                    via: {{ net_gw }}
+                  {% for route in net_routes %}
+                  - to: {{ route.to }}
+                    via: {{ route.via }}
+                  {% endfor %}
+                nameservers:
+                  addresses: {{ net_dns }}
+        dest: /etc/netplan/01-netcfg.yaml
+        owner: root
+        group: root
+        mode: 0644
+    - name: Применяем netplan
+      command: netplan apply
+      async: 10
+      poll: 0
+      notify: netplan applied
+  when: net_mode == "static"
+
+- name: Включаем DHCP
+  block:
+    - name: Генерируем DHCP netplan
+      copy:
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              {{ net_iface }}:
+                dhcp4: true
+        dest: /etc/netplan/01-netcfg.yaml
+        owner: root
+        group: root
+        mode: 0644
+    - name: Применяем netplan
+      command: netplan apply
+      async: 10
+      poll: 0
+      notify: netplan applied
+  when: net_mode == "dhcp"

@@ -1,0 +1,28 @@
+---
+- name: Создаём папку проекта
+  file:
+    path: /opt/traefik-nginx
+    state: directory
+    owner: root
+    group: docker
+    mode: 0750
+
+- name: Поднимаем сеть proxy
+  community.docker.docker_network:
+    name: proxy
+    state: present
+
+- name: Docker Compose файл
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/traefik-nginx/docker-compose.yml
+    owner: root
+    group: docker
+    mode: 0644
+
+- name: Запускаем стек (compose v2)
+  community.docker.docker_compose_v2:
+    project_src: /opt/traefik-nginx
+    state: present
+    pull: always
+    recreate: always

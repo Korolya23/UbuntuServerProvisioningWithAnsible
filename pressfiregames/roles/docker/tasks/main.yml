@@ -1,0 +1,47 @@
+---
+- name: Ставим нужные пакеты
+  apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Создаём папку для ключей
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: 0755
+
+- name: Качаем Docker GPG-ключ
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Добавляем репозиторий Docker (ARM64)
+  apt_repository:
+    repo: "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Устанавливаем Docker и плагин compose
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+
+- name: Запускаем Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Добавляем текущего юзера в группу docker
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
